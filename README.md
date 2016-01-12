@@ -66,7 +66,7 @@ let httpRequest = requestor('http', {
         options.hostname = '127.0.0.1';
         options.port = port;
         options.headers.a ++;
-        return options; // remember return options
+        return options; // remember returning options
     }
 });
 
