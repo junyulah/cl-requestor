@@ -27,6 +27,8 @@ module.exports = (type, opts = {}) => {
             let req = sender.request(options, (res) => {
                 let chunks = [];
                 let headers = res.headers;
+
+                let statusCode = res.statusCode;
                 res.on('data', function (chunk) {
                     chunkHandler && chunkHandler(chunk, 'data');
                     if (!throwBody) {
@@ -43,6 +45,7 @@ module.exports = (type, opts = {}) => {
                         }
                     }
                     resolve({
+                        statusCode,
                         headers,
                         body
                     });

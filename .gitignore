@@ -1,3 +1,5 @@
 node_modules
 coverage
 lib
+*.swp
+*.DS_Store
