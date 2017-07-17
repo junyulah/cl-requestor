@@ -1,6 +1,6 @@
 {
   "name": "cl-requestor",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Http/Https Requestor which Provide Promise and Common Handler Interface.",
   "main": "index.js",
   "scripts": {
