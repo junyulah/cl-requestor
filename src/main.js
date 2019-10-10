@@ -1,7 +1,7 @@
-import http from 'http';
-import https from 'https';
+const http = require('http');
+const https = require('https');
 
-let checkFun = (v) => {
+const checkFun = (v) => {
     if (v && typeof v !== 'function') {
         throw new TypeError('Expect null or function, but got ' + v);
     }
@@ -9,9 +9,10 @@ let checkFun = (v) => {
 
 module.exports = (type, opts = {}) => {
     let sender = http;
-    let {
+    const {
         chunkHandler, throwBody, optionsWraper, bodyParser
     } = opts;
+
     // type check
     checkFun(chunkHandler);
     checkFun(optionsWraper);
@@ -20,40 +21,44 @@ module.exports = (type, opts = {}) => {
     if (type === 'https') {
         sender = https;
     }
-    return (options = {}, postData = '') => {
-        if (optionsWraper)
-            options = optionsWraper(options);
-        return new Promise((resolve, reject) => {
-            let req = sender.request(options, (res) => {
-                let chunks = [];
-                let headers = res.headers;
 
-                let statusCode = res.statusCode;
+    return (options = {}, postData = '') => {
+        return new Promise((resolve, reject) => {
+            if (optionsWraper) options = optionsWraper(options);
+            const req = sender.request(options, (res) => {
+                const chunks = [];
+                const headers = res.headers;
+                const statusCode = res.statusCode;
+
                 res.on('data', function (chunk) {
-                    chunkHandler && chunkHandler(chunk, 'data');
-                    if (!throwBody) {
-                        chunks.push(chunk);
-                    }
-                });
-                res.on('end', function () {
-                    chunkHandler && chunkHandler(null, 'end');
-                    let body = null;
-                    if (!throwBody) {
-                        body = chunks.join('');
-                        if (bodyParser) {
-                            body = bodyParser(body);
+                    try {
+                        chunkHandler && chunkHandler(chunk, 'data');
+                        if (!throwBody) {
+                            chunks.push(chunk);
                         }
+                    } catch(err) {
+                        reject(err);
                     }
-                    resolve({
-                        statusCode,
-                        headers,
-                        body
-                    });
+                });
+
+                res.on('end', function () {
+                    try {
+                        chunkHandler && chunkHandler(null, 'end');
+                        let body = null;
+                        if (!throwBody) {
+                            body = chunks.join('');
+                            if (bodyParser) {
+                                body = bodyParser(body);
+                            }
+                        }
+                        resolve({statusCode, headers, body});
+                    } catch (err) {
+                        reject(err);
+                    }
                 });
             });
-            req.on('error', function (e) {
-                reject(e);
-            });
+
+            req.on('error', reject);
             // write data to request body
             req.write(postData);
             req.end();

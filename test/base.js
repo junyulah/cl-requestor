@@ -1,7 +1,6 @@
-import 'babel-polyfill'; // if you need to some feature like async await, open this notation.
-import requestor from '../../index';
-import http from 'http';
-import assert from 'assert';
+const requestor = require('..');
+const http = require('http');
+const assert = require('assert');
 
 describe('base', () => {
     it('base', async () => {
@@ -20,6 +19,7 @@ describe('base', () => {
             hostname: '127.0.0.1',
             port
         });
+        server.close();
         assert.equal(res.body, 'hello');
     });
 
@@ -42,6 +42,7 @@ describe('base', () => {
             }
         });
         let res = await httpRequest();
+        server.close();
         assert.equal(res.body, 'hello');
     });
 
@@ -59,9 +60,9 @@ describe('base', () => {
         let chunks = [];
         let httpRequest = requestor('http', {
             chunkHandler: (chunk, type) => {
-                if(type === 'data') {
+                if (type === 'data') {
                     chunks.push(chunk);
-                } else if(type === 'end') {
+                } else if (type === 'end') {
                     assert.equal(chunks + '', 'hello');
                 }
             }
@@ -70,6 +71,7 @@ describe('base', () => {
             hostname: '127.0.0.1',
             port
         });
+        server.close();
     });
 
     it('throwBody', async () => {
@@ -91,6 +93,7 @@ describe('base', () => {
             port
         });
 
+        server.close();
         assert.equal(res.body, null);
     });
 
@@ -115,21 +118,55 @@ describe('base', () => {
             port,
             method: 'POST'
         }, JSON.stringify({
-            pd : 20
+            pd: 20
         }));
+        server.close();
         assert.equal(res.body.a, 1000);
     });
 
-    it('error', async (done) => {
-        let httpRequest = requestor('https');
+    it('bodyParser-error', async () => {
+        let server = http.createServer((req, res) => {
+            res.end('<html/>');
+        });
+
+        let sp = new Promise((resolve) => server.listen(0, () => {
+            let port = server.address().port;
+            resolve(port);
+        }));
+        let port = await sp;
+
+        let httpRequest = requestor('http', {
+            bodyParser: (body) => JSON.parse(body)
+        });
+
+        let e = null;
         try {
-            await httpRequest();
+            let res = await httpRequest({
+                hostname: '127.0.0.1',
+                port,
+                method: 'POST'
+            }, JSON.stringify({
+                pd: 20
+            }));
         } catch(err) {
-            done();
+            e = err;
         }
+        assert(e !== null);
+        server.close();
     });
 
-    it('error type', async (done) => {
+    it('error', async () => {
+        let httpRequest = requestor('https');
+        let e = null;
+        try {
+            await httpRequest();
+        } catch (err) {
+            e = err;
+        }
+        assert(e !== null)
+    });
+
+    it('error type', async () => {
         let server = http.createServer((req, res) => {
             res.end(JSON.stringify({
                 a: 1000
@@ -141,6 +178,7 @@ describe('base', () => {
             resolve(port);
         }));
         let port = await sp;
+        let e = null;
 
         try {
             let httpRequest = requestor('http', {
@@ -151,7 +189,9 @@ describe('base', () => {
                 port
             });
         } catch (err) {
-            done();
+            e = err;
         }
+        server.close();
+        assert(e !== null)
     });
 });
