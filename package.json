@@ -4,13 +4,15 @@
   "description": "Http/Https Requestor which Provide Promise and Common Handler Interface.",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/**/*"
+    "test": "mocha test/**/*",
+    "cover": "nyc --reporter=html mocha test/**/*"
   },
   "author": "ddchen",
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "mocha": "^6.2.1"
+    "mocha": "^6.2.1",
+    "nyc": "^14.1.1"
   },
   "repository": {
     "type": "git",
