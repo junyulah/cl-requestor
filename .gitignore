@@ -1,6 +1,5 @@
 node_modules
 coverage
-lib
 *.swp
 *.DS_Store
 .nyc_output
