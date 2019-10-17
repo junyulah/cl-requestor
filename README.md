@@ -13,9 +13,8 @@
 ## demo
 
 ```
-import requestor from 'requestor';
-
-let httpRequest = requestor('http');
+const requestor = require('cl-requestor');
+const httpRequest = requestor('http');
 
 httpRequest({
     hostname: '127.0.0.1',
